@@ -1,5 +1,5 @@
 ﻿using FinancialWeb.Services;
-using FinancialWeb.ViewModels;
+using FinancialWeb.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

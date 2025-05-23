@@ -1,4 +1,4 @@
-using FinancialWeb.Data;
+ï»¿using FinancialWeb.Data;
 using FinancialWeb.Services.Impl;
 using FinancialWeb.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -10,17 +10,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-// thêm DI cho apllicationDB context dùng EF thì dùng con này , ko bi?t tý có l?i n?a không
+// thÃªm DI cho apllicationDB context dÃ¹ng EF thÃ¬ dÃ¹ng con nÃ y , ko bi?t tÃ½ cÃ³ l?i n?a khÃ´ng
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")));
-// thêm DI cho Vi?c query b?ng tay
+// thÃªm DI cho Vi?c query b?ng tay
 builder.Services.AddScoped<IUserRepository>(provider =>
     new UserRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
-// ??ng ký Service
+// ??ng kÃ½ Service
 builder.Services.AddScoped<IUserService, UserService>();
+// tÆ°Æ¡ng tá»± cho Category
+builder.Services.AddScoped<ICategoryRepository>(provider =>
+    new CategoryRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
-// C?u hình Authentication
+// C?u hÃ¬nh Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -31,7 +35,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         options.Cookie.SameSite = SameSiteMode.Lax;
     });
-// l?i c?u hình http context
+// l?i c?u hÃ¬nh http context
 builder.Services.AddHttpContextAccessor();
 
 
@@ -47,7 +51,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-// c?u hình ?? secure cookie
+// c?u hÃ¬nh ?? secure cookie
 app.UseAuthentication();
 app.UseAuthorization();
 

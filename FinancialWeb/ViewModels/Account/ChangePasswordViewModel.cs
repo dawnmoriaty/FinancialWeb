@@ -1,4 +1,4 @@
-﻿namespace FinancialWeb.ViewModels
+﻿namespace FinancialWeb.ViewModels.Account
 {
     public class ChangePasswordViewModel
     {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FinancialWeb.ViewModels
+namespace FinancialWeb.ViewModels.Account
 {
     public class RegisterViewModel
     {
