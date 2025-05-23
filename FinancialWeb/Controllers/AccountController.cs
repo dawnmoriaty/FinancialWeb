@@ -2,6 +2,7 @@
 using FinancialWeb.ViewModels.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FinancialWeb.Controllers
 {
@@ -88,11 +89,13 @@ namespace FinancialWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Logout()
         {
             await _userService.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
+
 
         [HttpGet]
         public IActionResult AccessDenied()
@@ -132,23 +135,24 @@ namespace FinancialWeb.Controllers
 
             return View(model);
         }
-
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> UpdateProfile()
+        public async Task<IActionResult> Profile() // Đổi tên từ UpdateProfile thành Profile
         {
-            var userId = int.Parse(User.FindFirst("UserId")?.Value);
-            var user = await _userService.GetByIdAsync(userId);
+            // Lấy userId từ ClaimTypes.NameIdentifier thay vì "UserId"
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
+            var user = await _userService.GetByIdAsync(userId);
             if (user == null)
             {
-                return NotFound();
+                TempData["ErrorMessage"] = "Không tìm thấy thông tin người dùng.";
+                return RedirectToAction("Index", "Home");
             }
 
             var model = new UpdateProfileViewModel
             {
                 Email = user.Email,
-                FullName = user.FullName
+                FullName = user.FullName ?? string.Empty // Fix null reference warning
             };
 
             return View(model);
@@ -157,27 +161,28 @@ namespace FinancialWeb.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(UpdateProfileViewModel model)
+        public async Task<IActionResult> Profile(UpdateProfileViewModel model) // Đổi tên từ UpdateProfile thành Profile
         {
-            //if (ModelState.IsValid)
-            //{
-            //    var userId = int.Parse(User.FindFirst("UserId")?.Value);
-            //    var result = await _userService.UpdateProfileAsync(
-            //        userId,
-            //        model.Email,
-            //        model.FullName);
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
-            //    if (result.Success)
-            //    {
-            //        TempData["SuccessMessage"] = "Thông tin tài khoản đã được cập nhật thành công.";
-            //        return RedirectToAction("Index", "Home");
-            //    }
-            //    else
-            //    {
-            //        ModelState.AddModelError(string.Empty, result.Message);
-            //    }
-            //}
+            // Lấy userId từ ClaimTypes.NameIdentifier thay vì "UserId"
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
+            var result = await _userService.UpdateProfileAsync(
+                userId,
+                model.Email,
+                model.FullName ?? string.Empty);
+
+            if (result.Success)
+            {
+                TempData["SuccessMessage"] = "Thông tin tài khoản đã được cập nhật thành công.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            ModelState.AddModelError(string.Empty, result.Message);
             return View(model);
         }
     }
