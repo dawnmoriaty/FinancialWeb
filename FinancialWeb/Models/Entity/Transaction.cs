@@ -22,10 +22,6 @@ namespace FinancialWeb.Models.Entity
         public DateTime Date { get; set; }
 
         [Required]
-        [StringLength(10)]
-        public string Type { get; set; } // "income" hoặc "expense"
-
-        [Required]
         public int CategoryId { get; set; }
 
         [Required]
@@ -35,7 +31,7 @@ namespace FinancialWeb.Models.Entity
 
         // Navigation properties
         [ForeignKey("CategoryId")]
-        [DeleteBehavior(DeleteBehavior.Restrict)] // Đặt DeleteBehavior trực tiếp
+        [DeleteBehavior(DeleteBehavior.Restrict)]
         public virtual Category? Category { get; set; }
 
         [ForeignKey("UserId")]

@@ -54,6 +54,7 @@ namespace FinancialWeb.Services.Impl
                 IsBlocked = false,
                 CreatedAt = DateTime.Now
             };
+            
 
             user.Id = await _userRepository.CreateAsync(user);
             return (true, "Đăng ký thành công", user);

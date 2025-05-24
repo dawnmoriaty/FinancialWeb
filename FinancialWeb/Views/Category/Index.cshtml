@@ -5,3 +5,109 @@
 @{
     ViewData["Title"] = "Danh sách danh mục";
 }
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Danh sách danh mục</h4>
+        @if (User.IsInRole("admin"))
+        {
+            <a asp-action="Create" class="btn btn-light">
+                <i class="fas fa-plus-circle"></i> Thêm danh mục
+            </a>
+        }
+    </div>
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <h5>Danh mục thu nhập</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên danh mục</th>
+                                <th>Icon</th>
+                                <th>Người tạo</th>
+                                @if (User.IsInRole("admin"))
+                                {
+                                    <th>Thao tác</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Where(c => c.Type == "income"))
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td><i class="fas @item.IconPath"></i></td>
+                                    <td>@item.UserName</td>
+                                    @if (User.IsInRole("admin"))
+                                    {
+                                        <td>
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h5>Danh mục chi tiêu</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tên danh mục</th>
+                                <th>Icon</th>
+                                <th>Người tạo</th>
+                                @if (User.IsInRole("admin"))
+                                {
+                                    <th>Thao tác</th>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Where(c => c.Type == "expense"))
+                            {
+                                <tr>
+                                    <td>@item.Name</td>
+                                    <td><i class="fas @item.IconPath"></i></td>
+                                    <td>@item.UserName</td>
+                                    @if (User.IsInRole("admin"))
+                                    {
+                                        <td>
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

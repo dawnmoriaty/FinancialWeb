@@ -10,39 +10,87 @@ namespace FinancialWeb.Services.Impl
         {
             _categoryRepository = categoryRepository;
         }
-        public Task<(bool Success, string Message, Category Category)> CreateCategoryAsync(string name, string type, string iconPath, int userId)
+        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
         {
-            throw new NotImplementedException();
+            return await _categoryRepository.GetAllAsync();
         }
 
-        public Task<(bool Success, string Message)> DeleteCategoryAsync(int id)
+        public async Task<IEnumerable<Category>> GetUserCategoriesAsync(int userId)
         {
-            throw new NotImplementedException();
+            return await _categoryRepository.GetByUserIdAsync(userId);
         }
 
-        public Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        public async Task<IEnumerable<Category>> GetCategoriesByTypeAsync(string type)
         {
-            throw new NotImplementedException();
+            return await _categoryRepository.GetByTypeAsync(type);
         }
 
-        public Task<IEnumerable<Category>> GetCategoriesByTypeAsync(string type)
+        public async Task<Category> GetCategoryByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return await _categoryRepository.GetByIdAsync(id);
         }
 
-        public Task<Category> GetCategoryByIdAsync(int id)
+        public async Task<(bool Success, string Message, Category Category)> CreateCategoryAsync(
+            string name, string type, string iconPath, int userId)
         {
-            throw new NotImplementedException();
+            // Kiểm tra tên danh mục đã tồn tại chưa
+            if (await _categoryRepository.IsCategoryExistAsync(name, type))
+            {
+                return (false, "Danh mục với tên và loại này đã tồn tại", null);
+            }
+
+            var category = new Category
+            {
+                Name = name,
+                Type = type,
+                IconPath = iconPath,
+                UserId = userId
+            };
+
+            category.Id = await _categoryRepository.CreateAsync(category);
+            return (true, "Tạo danh mục thành công", category);
         }
 
-        public Task<IEnumerable<Category>> GetUserCategoriesAsync(int userId)
+        public async Task<(bool Success, string Message)> UpdateCategoryAsync(
+            int id, string name, string type, string iconPath)
         {
-            throw new NotImplementedException();
+            var category = await _categoryRepository.GetByIdAsync(id);
+            if (category == null)
+            {
+                return (false, "Không tìm thấy danh mục");
+            }
+
+            // Kiểm tra xem tên mới (nếu đã thay đổi) đã tồn tại chưa
+            if (name != category.Name && await _categoryRepository.IsCategoryExistAsync(name, type))
+            {
+                return (false, "Danh mục với tên và loại này đã tồn tại");
+            }
+
+            category.Name = name;
+            category.Type = type;
+            category.IconPath = iconPath;
+
+            await _categoryRepository.UpdateAsync(category);
+            return (true, "Cập nhật danh mục thành công");
         }
 
-        public Task<(bool Success, string Message)> UpdateCategoryAsync(int id, string name, string type, string iconPath)
+        public async Task<(bool Success, string Message)> DeleteCategoryAsync(int id)
         {
-            throw new NotImplementedException();
+            var category = await _categoryRepository.GetByIdAsync(id);
+            if (category == null)
+            {
+                return (false, "Không tìm thấy danh mục");
+            }
+
+            // Kiểm tra xem danh mục có đang được sử dụng không
+            int usageCount = await _categoryRepository.GetUsageCountAsync(id);
+            if (usageCount > 0)
+            {
+                return (false, $"Không thể xóa danh mục đang được sử dụng trong {usageCount} giao dịch/ngân sách");
+            }
+
+            await _categoryRepository.DeleteAsync(id);
+            return (true, "Xóa danh mục thành công");
         }
     }
 }
