@@ -41,7 +41,6 @@ namespace FinancialWeb.Data
 
             // Các index khác
             modelBuilder.Entity<Transaction>().HasIndex(t => t.Date);
-            modelBuilder.Entity<Transaction>().HasIndex(t => t.Type);
             modelBuilder.Entity<Budget>().HasIndex(b => b.EndDate);
         }
     }
