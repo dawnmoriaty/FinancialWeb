@@ -1,5 +1,164 @@
-﻿@*
+﻿@using FinancialWeb.ViewModels.Transaction
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
+@model List<TransactionViewModel>
 @{
+    ViewData["Title"] = "Quản lý giao dịch";
+    var filter = (TransactionFilterViewModel)ViewBag.Filter;
+    var summary = (TransactionSummaryViewModel)ViewBag.Summary;
 }
+
+<div class="container py-4">
+    <h1>Quản lý giao dịch</h1>
+
+    @if (TempData["Message"] != null)
+    {
+            <div class="alert alert-success">@TempData["Message"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <!-- Thống kê tóm tắt -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5>Tổng thu</h5>
+                    <h3>@summary.TotalIncome.ToString("N0") VND</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5>Tổng chi</h5>
+                    <h3>@summary.TotalExpense.ToString("N0") VND</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5>Số dư</h5>
+                    <h3>@summary.Balance.ToString("N0") VND</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Lọc giao dịch</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Index" method="post">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="@filter.StartDate" class="form-label">Từ ngày</label>
+                            <input asp-for="@filter.StartDate" class="form-control" type="date">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="@filter.EndDate" class="form-label">Đến ngày</label>
+                            <input asp-for="@filter.EndDate" class="form-control" type="date">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="@filter.Type" class="form-label">Loại</label>
+                            <select asp-for="@filter.Type" class="form-control">
+                                <option value="">-- Tất cả --</option>
+                                <option value="income">Thu nhập</option>
+                                <option value="expense">Chi tiêu</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label asp-for="@filter.CategoryId" class="form-label">Danh mục</label>
+                            <select asp-for="@filter.CategoryId" asp-items="@filter.Categories" class="form-control"></select>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Lọc</button>
+                <a asp-action="Index" class="btn btn-secondary">Đặt lại</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Nút thêm mới -->
+    @if (User.IsInRole("user"))
+    {
+            <div class="mb-3">
+                <a asp-action="Create" asp-route-type="income" class="btn btn-success me-2">
+                    <i class="bi bi-plus-circle"></i> Thêm thu nhập
+                </a>
+                <a asp-action="Create" asp-route-type="expense" class="btn btn-danger me-2">
+                    <i class="bi bi-plus-circle"></i> Thêm chi tiêu
+                </a>
+            </div>
+    }
+
+    <!-- Danh sách giao dịch -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Danh sách giao dịch</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Ngày</th>
+                                    <th>Danh mục</th>
+                                    <th>Mô tả</th>
+                                    <th>Số tiền</th>
+                                @if (User.IsInRole("user"))
+                                {
+                                            <th>Thao tác</th>
+                                }
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var item in Model)
+                            {
+                                        <tr>
+                                            <td>@item.Date.ToString("dd/MM/yyyy")</td>
+                                            <td>@item.CategoryName</td>
+                                            <td>@item.Description</td>
+                                            <td class="@(item.CategoryType == "income" ? "text-success" : "text-danger")">
+                                        @item.Amount.ToString("N0") VND
+                                            </td>
+                                    @if (User.IsInRole("user"))
+                                    {
+                                                    <td>
+                                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </a>
+                                                    </td>
+                                    }
+                                        </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+            }
+            else
+            {
+                    <div class="alert alert-info">Không có giao dịch nào.</div>
+            }
+        </div>
+    </div>
+</div>

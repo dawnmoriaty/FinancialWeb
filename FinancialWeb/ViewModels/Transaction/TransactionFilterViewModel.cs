@@ -5,16 +5,16 @@ namespace FinancialWeb.ViewModels.Transaction
 {
     public class TransactionFilterViewModel
     {
-        [DataType(DataType.Date)]
         [Display(Name = "Từ ngày")]
-        public DateTime? StartDate { get; set; }
-
         [DataType(DataType.Date)]
+        public DateTime? StartDate { get; set; } = DateTime.Today.AddMonths(-1);
+
         [Display(Name = "Đến ngày")]
-        public DateTime? EndDate { get; set; }
+        [DataType(DataType.Date)]
+        public DateTime? EndDate { get; set; } = DateTime.Today;
 
         [Display(Name = "Loại")]
-        public string CategoryType { get; set; }
+        public string Type { get; set; }
 
         [Display(Name = "Danh mục")]
         public int? CategoryId { get; set; }

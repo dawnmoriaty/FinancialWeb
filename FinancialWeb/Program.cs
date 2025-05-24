@@ -23,6 +23,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICategoryRepository>(provider =>
     new CategoryRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ITransactionRepository>(provider =>
+    new TransactionRepository(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ITransactionService, TransactionService>();
 
 // C?u hình Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

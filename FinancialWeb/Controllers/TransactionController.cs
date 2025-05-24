@@ -1,70 +1,176 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FinancialWeb.Services;
+using FinancialWeb.ViewModels.Transaction;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace FinancialWeb.Controllers
 {
+    [Authorize]
     public class TransactionController : Controller
-        // triển khai từ service ra , có 2 phần của admin với user  e chia riêng ở repo rồi a vào xem nhé
-        // dùng data anotation valid cho cookie 
     {
-        // GET: TransactionController
-        public ActionResult Index()
+        private readonly ITransactionService _transactionService;
+
+        public TransactionController(ITransactionService transactionService)
         {
-            return View();
+            _transactionService = transactionService;
         }
-        // GET: TransactionController/Details/5
-        public ActionResult Details(int id)
+
+        // Lấy ID người dùng từ Claims
+        private int GetUserId()
         {
-            return View();
+            return int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         }
-        // GET: TransactionController/Create
-        public ActionResult Create()
+
+        // Xem danh sách giao dịch
+        public async Task<IActionResult> Index()
         {
-            return View();
+            int userId = GetUserId();
+
+            // Lấy filter và giao dịch
+            var filter = await _transactionService.PrepareFilterModelAsync();
+            var transactions = await _transactionService.GetUserTransactionsAsync(userId);
+            var summary = await _transactionService.GetUserSummaryAsync(userId);
+
+            ViewBag.Filter = filter;
+            ViewBag.Summary = summary;
+
+            return View(transactions);
         }
-        // POST: TransactionController/Create
+
+        // Lọc giao dịch
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> Index(TransactionFilterViewModel filter)
         {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            int currentUserId = GetUserId(); // Renamed variable to avoid conflict
+
+            // Lọc giao dịch theo filter
+            var transactions = await _transactionService.GetFilteredTransactionsAsync(currentUserId, filter);
+            var summary = await _transactionService.GetUserSummaryAsync(currentUserId, filter.StartDate, filter.EndDate);
+
+            // Điền lại danh sách Category
+            filter = await _transactionService.PrepareFilterModelAsync();
+
+            ViewBag.Filter = filter;
+            ViewBag.Summary = summary;
+
+            return View(transactions);
         }
-        // GET: TransactionController/Edit/5
-        public ActionResult Edit(int id)
+
+        // Tạo giao dịch mới - chỉ user
+        [Authorize(Roles = "user")]
+        public async Task<IActionResult> Create(string type)
         {
-            return View();
+            var model = await _transactionService.PrepareFormModelAsync(type);
+            ViewBag.Type = type;
+            return View(model);
         }
-        // POST: TransactionController/Edit/5
+
         [HttpPost]
+        [Authorize(Roles = "user")]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        public async Task<IActionResult> Create(TransactionFormViewModel model)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                return RedirectToAction(nameof(Index));
+                model = await _transactionService.PrepareFormModelAsync();
+                return View(model);
             }
-            catch
-            {
-                return View();
-            }
+
+            int userId = GetUserId();
+            await _transactionService.CreateTransactionAsync(model, userId);
+
+            TempData["Message"] = "Thêm giao dịch thành công";
+            return RedirectToAction("Index");
         }
-        // GET: TransactionController/Delete/5
-        public ActionResult Delete(int id)
+
+        // Sửa giao dịch - chỉ user
+        [Authorize(Roles = "user")]
+        public async Task<IActionResult> Edit(int id)
         {
-            return View();
+            int userId = GetUserId();
+            var model = await _transactionService.PrepareEditFormModelAsync(id, userId);
+
+            if (model == null)
+                return NotFound();
+
+            return View(model);
         }
-        // POST: TransactionController/Delete/5
+
         [HttpPost]
+        [Authorize(Roles = "user")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection) {
-        return View();
+        public async Task<IActionResult> Edit(TransactionFormViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                int currentUserId = GetUserId(); // Renamed variable to avoid conflict
+                model = await _transactionService.PrepareEditFormModelAsync(model.Id, currentUserId);
+                return View(model);
+            }
+
+            int userId = GetUserId();
+            var success = await _transactionService.UpdateTransactionAsync(model, userId);
+
+            if (success)
+            {
+                TempData["Message"] = "Cập nhật giao dịch thành công";
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                TempData["Error"] = "Không thể cập nhật giao dịch";
+                return RedirectToAction("Index");
+            }
         }
-        
+
+        // Xóa giao dịch - chỉ user
+        [Authorize(Roles = "user")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            int userId = GetUserId();
+            var transaction = await _transactionService.GetTransactionByIdAsync(id, userId);
+
+            if (transaction == null)
+                return NotFound();
+
+            return View(transaction);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [Authorize(Roles = "user")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            int userId = GetUserId();
+            var success = await _transactionService.DeleteTransactionAsync(id, userId);
+
+            if (success)
+                TempData["Message"] = "Xóa giao dịch thành công";
+            else
+                TempData["Error"] = "Không thể xóa giao dịch";
+
+            return RedirectToAction("Index");
+        }
+
+        // Báo cáo tổng quan - dành cho cả user và admin
+        public async Task<IActionResult> Dashboard()
+        {
+            if (User.IsInRole("admin"))
+            {
+                // Admin xem tổng hệ thống
+                var summary = await _transactionService.GetSystemSummaryAsync();
+                return View("AdminDashboard", summary);
+            }
+            else
+            {
+                // User xem của riêng họ
+                int userId = GetUserId();
+                var summary = await _transactionService.GetUserSummaryAsync(userId);
+                return View(summary);
+            }
+        }
     }
 }

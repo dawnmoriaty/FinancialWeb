@@ -4,17 +4,17 @@
 *@
 @model TransactionSummaryViewModel
 @{
-    ViewData["Title"] = "Báo cáo tài chính";
+    ViewData["Title"] = "Báo cáo hệ thống";
 }
 
 <div class="container py-4">
-    <h1>Báo cáo tài chính</h1>
+    <h1>Báo cáo tài chính hệ thống</h1>
 
     <div class="row mb-4">
         <div class="col-md-4">
             <div class="card bg-success text-white">
                 <div class="card-body">
-                    <h5>Tổng thu</h5>
+                    <h5>Tổng thu toàn hệ thống</h5>
                     <h3>@Model.TotalIncome.ToString("N0") VND</h3>
                     <p>@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
                 </div>
@@ -23,7 +23,7 @@
         <div class="col-md-4">
             <div class="card bg-danger text-white">
                 <div class="card-body">
-                    <h5>Tổng chi</h5>
+                    <h5>Tổng chi toàn hệ thống</h5>
                     <h3>@Model.TotalExpense.ToString("N0") VND</h3>
                     <p>@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
                 </div>
@@ -32,7 +32,7 @@
         <div class="col-md-4">
             <div class="card bg-primary text-white">
                 <div class="card-body">
-                    <h5>Số dư</h5>
+                    <h5>Số dư toàn hệ thống</h5>
                     <h3>@Model.Balance.ToString("N0") VND</h3>
                     <p>@Model.StartDate.ToString("dd/MM/yyyy") - @Model.EndDate.ToString("dd/MM/yyyy")</p>
                 </div>
@@ -40,5 +40,10 @@
         </div>
     </div>
 
-    <a href="@Url.Action("Index")" class="btn btn-primary">Xem chi tiết giao dịch</a>
+    <div class="alert alert-info">
+        <p>
+            Đây là báo cáo dành cho quản trị viên. Admin chỉ có thể xem báo cáo tổng hợp,
+            không thể tương tác trực tiếp với các giao dịch cá nhân của người dùng.
+        </p>
+    </div>
 </div>

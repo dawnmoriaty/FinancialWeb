@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FinancialWeb.ViewModels.Transaction
 {
-    public class TransactionEditViewModel
+    public class TransactionFormViewModel
     {
-        public int Id { get; set; }
+        public int Id { get; set; } // Chỉ dùng cho sửa
 
         [Required(ErrorMessage = "Vui lòng nhập số tiền")]
         [Range(1, double.MaxValue, ErrorMessage = "Số tiền phải lớn hơn 0")]
@@ -20,13 +20,12 @@ namespace FinancialWeb.ViewModels.Transaction
         [Required(ErrorMessage = "Vui lòng chọn ngày")]
         [DataType(DataType.Date)]
         [Display(Name = "Ngày")]
-        public DateTime Date { get; set; }
+        public DateTime Date { get; set; } = DateTime.Today;
 
         [Required(ErrorMessage = "Vui lòng chọn danh mục")]
         [Display(Name = "Danh mục")]
         public int CategoryId { get; set; }
 
-        [Display(Name = "Danh mục")]
         public List<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
     }
 }
